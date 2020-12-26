@@ -4,11 +4,11 @@
 #+DATE: 2020-12-26
 
 * About
-"qrcode-elisp" is elisp package for Emacs.
+"qrcode-elisp" is Emacs elisp package for QRCode generating and decoding.
 
 It containts the features:
 1. generating QRCode from text to image.
-2. decode the QRCode image or from clipboard to text.
+2. decoding the QRCode image (or from clipboard) to text.
 
 ** Snapshot
 1. generate QR code by using the command "qrcode-elisp-generate-qrcode"
@@ -39,6 +39,7 @@ Please intall Python [[https://www.python.org/]] and Pip, and "python3" is prefe
        :load-path "packages/qrcode-elisp"
        ;; :custom
        ;; (qrcode-elisp-python-command "python3")
+       ;; (qrcode-elisp-text-coding 'gb2312)
        :init
        (let ((pkg-name "qrcode-elisp"))
          (ignore-errors
