@@ -1,0 +1,87 @@
+# -*- coding: utf-8; org-download-method: directory; org-download-image-dir: "./image"; -*-
+#+TITLE: qrcode-elisp
+#+AUTHOR: Jian Wang
+#+DATE: 2020-12-26
+
+* About
+"qrcode-elisp" is elisp package for Emacs.
+
+It containts the features:
+1. generating QRCode from text to image.
+2. decode the QRCode image or from clipboard to text.
+
+** Snapshot
+1. generate QR code by using the command "qrcode-elisp-generate-qrcode"
+   #+DOWNLOADED: screenshot @ 2020-12-26 17:08:01
+   [[file:image/About/2020-12-26_17-08-01_screenshot.png]]
+
+   #+DOWNLOADED: screenshot @ 2020-12-26 17:07:32
+   [[file:image/About/2020-12-26_17-07-32_screenshot.png]]
+
+2. decode QR code from image of clipboard by using the command
+   "qrcode-elisp-decode-qrcode-from-clipboard"
+   #+DOWNLOADED: screenshot @ 2020-12-26 17:09:50
+   [[file:image/About/2020-12-26_17-09-50_screenshot.png]]
+
+* Installation
+
+** pre-require
+Please intall Python [[https://www.python.org/]] and Pip, and "python3" is preferred.
+
+** install
+1. Clone this git repo to "${user-emacs-directory}/packages/qrcode-elisp", and add folowing lines to
+   your Emacs config file:
+   #+begin_src emacs-lisp
+     (use-package qrcode-elisp
+       :defer t
+       :ensure nil ; it is github package
+       ;; If the path is relative, it is expanded within `user-emacs-directory'
+       :load-path "packages/qrcode-elisp"
+       ;; :custom
+       ;; (qrcode-elisp-python-command "python3")
+       :init
+       (let ((pkg-name "qrcode-elisp"))
+         (ignore-errors
+           (package-generate-autoloads pkg-name
+                                       (expand-file-name (concat "packages/" pkg-name)
+                                                         user-emacs-directory)))
+         (load (concat pkg-name "-autoloads.el")))
+       )
+   #+end_src
+
+2. Set python command for your system \\
+   #+begin_src emacs-lisp
+     ;; for Linux
+     (setq qrcode-elisp-python-command "python3")
+     ;; for win10
+     ;; (setq qrcode-elisp-python-command "py")
+   #+end_src
+
+3. In "M-x", run the command "~qrcode-elisp-install-enviroment~". \\
+   it will install the python package "qrcode" for qrcode generating, "pyzbar" for qrcode decoding,
+   and "pillow" for copying image from system clipboard.
+   #+begin_src emacs-lisp
+     (qrcode-elisp-install-enviroment)
+   #+end_src
+
+4. Set correct coding in your system for the variable "~qrcode-elisp-text-coding~"
+   #+begin_src emacs-lisp
+     (setq qrcode-elisp-text-coding 'utf-8)
+   #+end_src
+
+* Usage
+
+** Commands provided by this package:
+| Command                                     |                    | Usage                                                                                                                        |
+|---------------------------------------------+--------------------+------------------------------------------------------------------------------------------------------------------------------|
+| ~qrcode-elisp-generate-qrcode~              | *suggested to use* | Generate QRCode from current active region or user input, and show the generated image in the buffer "*QR Code*" in org-mode |
+| ~qrcode-elisp-generate-qrcode-and-open~     |                    | As same as ~qrcode-elisp-generate-qrcode~, but show the image directly.                                                      |
+| ~qrcode-elisp-decode-qrcode-from-clipboard~ | *suggested to use* | Decode the QRCode image from clipboard, and output the result to the buffer "*QR Code*" in org-mode                          |
+| ~qrcode-elisp-decode-qrcode-from-image~     |                    | Decode the QRCode image from clipboard, and return the text directly (show in minibuffer).                                   |
+| ~qrcode-elisp-install-enviroment~           |                    | Install the python packages required by this package.                                                                        |
+
+** variables
+| variable                      | Usage                                |
+|-------------------------------+--------------------------------------|
+| ~qrcode-elisp-python-command~ | The python command in the system     |
+| ~qrcode-elisp-text-coding~    | The coding of your system for QRCode |
