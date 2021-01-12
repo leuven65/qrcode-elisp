@@ -26,7 +26,10 @@
 ;;; Code:
 
 (defvar qrcode-elisp-python-command
-  (if (eq system-type 'windows-nt) "py" "python3")
+  (if (and (eq system-type 'windows-nt)
+           (executable-find "py"))
+      "py"
+    "python3")
   "python command")
 
 ;; (defvar qrcode-elisp-text-coding
