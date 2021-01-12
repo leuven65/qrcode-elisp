@@ -29,9 +29,9 @@
   (if (eq system-type 'windows-nt) "py" "python3")
   "python command")
 
-(defvar qrcode-elisp-text-coding
-  (if (eq system-type 'windows-nt) 'gb2312 'utf-8)
-  "The coding used by qrcode encoding and decoding")
+;; (defvar qrcode-elisp-text-coding
+;;   (if (eq system-type 'windows-nt) 'gb2312 'utf-8)
+;;   "The coding used by qrcode encoding and decoding")
 
 (defvar qrcode-elisp-python-package-list
   '("qrcode" "pillow" "pyzbar")
@@ -57,8 +57,33 @@ from PIL import Image, ImageGrab
 img_file = '%s'
 img = Image.open(img_file) if img_file else ImageGrab.grabclipboard()
 result = decode(img)
-print(result[0].data.decode('utf-8'))
+content = result[0].data.decode('utf-8')
+with open('%s',
+          'w', encoding='utf-8') as output:
+    output.write(content)
 ")
+
+(defun qrcode-elisp-save-string-to-temp-file (string &optional suffix coding)
+  "create a temp file to store the string"
+  (let* ((temporary-file-directory
+          (if (file-remote-p default-directory)
+              (concat (file-remote-p default-directory) "/tmp")
+            temporary-file-directory))
+         (temp-file-name (make-temp-file nil nil suffix))
+         (coding-system-for-write (or coding 'utf-8))
+         )
+    (with-temp-file temp-file-name
+      (insert string)
+      (delete-trailing-whitespace))
+    temp-file-name))
+
+(defun qrcode-elisp-save-code-to-temp-file (python-code)
+  "create a temp file to store the python code"
+  (qrcode-elisp-save-string-to-temp-file (concat "#!/usr/bin/env python\n"
+                                                 python-code)
+                                         ".py"
+                                         'utf-8)
+  )
 
 (defun qrcode-elisp-py-call-python (args)
   (with-temp-buffer
@@ -90,10 +115,15 @@ print(result[0].data.decode('utf-8'))
 
 (defun qrcode-elisp-py-exec-python-code (python-code)
   "exec python-code and return the output"
-  (let* ((exec-result (qrcode-elisp-py-call-python (format "-c %s"
-                                                           (shell-quote-argument python-code))))
+  (let* ((py-temp-file (qrcode-elisp-save-code-to-temp-file python-code))
+         (exec-result (qrcode-elisp-py-call-python
+                       ;; (format "-c %s"
+                       ;;         (shell-quote-argument python-code))
+                       (shell-quote-argument py-temp-file)
+                       ))
          (exit-code (car exec-result))
          (result-string (cdr exec-result)))
+    (delete-file py-temp-file)
     (if (= exit-code 0)
         result-string
       (user-error "Failed to exec python code '%s': %s"
@@ -136,9 +166,16 @@ print(result[0].data.decode('utf-8'))
 (defun qrcode-elisp-decode-qrcode-from-image (&optional img-file-path)
   "if img-file-path is nil, read image from clipboard"
   (interactive "f")
-  (qrcode-elisp-py-exec-python-code
-   (format qrcode-elisp-py-code-qrcode-decode
-           (qrcode-elisp-py-escape-quote-in-string (or img-file-path "")))))
+  (let ((temp-file-name (make-temp-file "qrcode-")))
+    (unwind-protect
+        (progn (qrcode-elisp-py-exec-python-code
+                (format qrcode-elisp-py-code-qrcode-decode
+                        (qrcode-elisp-py-escape-quote-in-string (or img-file-path ""))
+                        (qrcode-elisp-py-escape-quote-in-string temp-file-name)))
+               (with-temp-buffer
+                 (insert-file-contents temp-file-name)
+                 (buffer-string)))
+      (delete-file temp-file-name))))
 
 (defun qrcode-elisp-read-string (PROMPT &optional THING)
   (read-string PROMPT
@@ -159,8 +196,7 @@ print(result[0].data.decode('utf-8'))
   "generate QR code for the text"
   (interactive (list (qrcode-elisp-read-string "Generate QR code for: " 'sexp)))
   (let ((img-file-path (qrcode-elisp-generate-tmp-image-file-name)))
-    (let ((default-process-coding-system (cons qrcode-elisp-text-coding qrcode-elisp-text-coding)))
-      (qrcode-elisp-generate-qrcode-to-image qr-text img-file-path))
+    (qrcode-elisp-generate-qrcode-to-image qr-text img-file-path)
     img-file-path
     ))
 
