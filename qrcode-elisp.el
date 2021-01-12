@@ -163,7 +163,7 @@ with open('%s',
     (user-error "Failed to generate QR Code")))
 
 ;;;###autoload
-(defun qrcode-elisp-decode-qrcode-from-image (&optional img-file-path)
+(defun qrcode-elisp-decode-qrcode-from-image (&optional img-file-path coding)
   "if img-file-path is nil, read image from clipboard"
   (interactive "f")
   (let ((temp-file-name (make-temp-file "qrcode-")))
@@ -173,7 +173,8 @@ with open('%s',
                         (qrcode-elisp-py-escape-quote-in-string (or img-file-path ""))
                         (qrcode-elisp-py-escape-quote-in-string temp-file-name)))
                (with-temp-buffer
-                 (insert-file-contents temp-file-name)
+                 (let ((coding-system-for-read (or coding 'utf-8)))
+                   (insert-file-contents temp-file-name))
                  (buffer-string)))
       (delete-file temp-file-name))))
 

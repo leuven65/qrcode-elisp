@@ -65,11 +65,6 @@ Please intall Python [[https://www.python.org/]] and Pip, and "python3" is prefe
      (qrcode-elisp-install-enviroment)
    #+end_src
 
-4. Set correct coding in your system for the variable "~qrcode-elisp-text-coding~"
-   #+begin_src emacs-lisp
-     (setq qrcode-elisp-text-coding 'utf-8)
-   #+end_src
-
 * Usage
 
 ** Commands provided by this package:
@@ -85,4 +80,3 @@ Please intall Python [[https://www.python.org/]] and Pip, and "python3" is prefe
 | variable                      | Usage                                |
 |-------------------------------+--------------------------------------|
 | ~qrcode-elisp-python-command~ | The python command in the system     |
-| ~qrcode-elisp-text-coding~    | The coding of your system for QRCode |
